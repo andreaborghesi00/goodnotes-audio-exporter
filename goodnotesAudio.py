@@ -3,11 +3,6 @@ import zipfile
 from zipfile import ZipFile
 from pathlib import Path
 
-# si ma con i path assoluti non se po vede
-# zip_dir = "C:\\Users\\Cowo\\OneDrive - Università degli Studi di Milano\\Desktop\\goodnotes"
-# audio_dir = "C:\\Users\\Cowo\\OneDrive - Università degli Studi di Milano\\Desktop\\goodnotes_audio"
-# tmp_dir = "C:\\Users\\Cowo\\OneDrive - Università degli Studi di Milano\\Desktop\\tmp"
-
 zip_dir = r'./tmp_zips'
 audio_dir = r'./exports'
 SIZE_LBOUND = 200000
