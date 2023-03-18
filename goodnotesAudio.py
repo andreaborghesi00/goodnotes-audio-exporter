@@ -1,10 +1,28 @@
 import os
+import sys
+import ffmpeg
 import zipfile
+import shutil
 from zipfile import ZipFile
 from pathlib import Path
+from pprint import pprint
+from datetime import datetime
 
-zip_dir = r'./tmp_zips'
-audio_dir = r'./exports'
+
+def parse_prefix(line, fmt):
+    try:
+        t = datetime.strptime(line, fmt)
+    except ValueError as v:
+        if len(v.args) > 0 and v.args[0].startswith('unconverted data remains: '):
+            line = line[:-(len(v.args[0]) - 26)]
+            t = datetime.strptime(line, fmt)
+        else:
+            raise
+    return t.strftime('%m-%d')
+
+
+zip_dir = r'.\tmp_zips'
+audio_dir = r'.\exports'
 SIZE_LBOUND = 200000
 
 # change extension to .goodnotes exports
@@ -24,7 +42,7 @@ for zip_file in os.listdir(zip_dir):
 
             # unzip audio to output dir
             for file in zObject.filelist:
-                if file.filename.__contains__("attachments/"):
+                if "attachments/" in file.filename:
                     zObject.extract(file, os.path.join(audio_dir, root_name))
             zObject.close()
 
@@ -38,20 +56,31 @@ for zip_file in os.listdir(zip_dir):
                     continue
 
                 # move audio out of useless dir
-                new_name = str.lower(root_name.replace(" ", "_"))+"_"+str(index)
-                os.rename(os.path.join(folder, file), os.path.join(os.path.join(audio_dir, root_name), new_name))
+                # os.rename(file, file+".mp4")
+                p = Path(file)
+                os.rename(os.path.join(folder,file), os.path.join(folder,file+".mp4"))
+                try:
+                    creation_date = parse_prefix(ffmpeg.probe(os.path.join(folder,file+".mp4"))["format"]["tags"]["creation_time"], '%Y-%m-%dT%H:%M:%S')
+                except ffmpeg._run.Error as e:
+                    print(e)
+                    continue
 
-                # change extension from none to .mp4
-                p = Path(os.path.join(audio_dir, root_name, new_name))
-                p.rename(p.with_suffix(".mp4"))
+                new_name = str.lower(root_name.replace(" ", "_"))+"_"+creation_date+".mp4"
+                new_path = os.path.join(audio_dir, root_name, new_name)
+
+                try:
+                    os.rename(os.path.join(folder, file+".mp4"), new_path)
+                except:
+                    os.rename(os.path.join(folder, file+".mp4"), os.path.join(audio_dir, root_name, str.lower(root_name.replace(" ", "_"))+"_"+creation_date+"_pt2.mp4"))
                 index += 1
-
-            # delete dir containing extensionless audio
+            # delete emptied dir containing extensionless
             os.rmdir(folder)
-        # delete zip
-        os.remove(os.path.join(zip_dir, zip_file))
+
+        # delete zip - DESTRUCTIVE
+        # os.remove(os.path.join(zip_dir, zip_file))
     except zipfile.BadZipfile:
         print(zip_file + " was not a zip file")
         continue
 
 print("done")
+
