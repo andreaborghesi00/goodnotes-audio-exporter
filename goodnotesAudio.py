@@ -18,7 +18,7 @@ def parse_prefix(line, fmt):
             t = datetime.strptime(line, fmt)
         else:
             raise
-    return t.strftime('%m-%d')
+    return t.strftime('%m-%d_%H-%M')
 
 
 zip_dir = r'.\tmp_zips'
@@ -68,10 +68,13 @@ for zip_file in os.listdir(zip_dir):
                 new_name = str.lower(root_name.replace(" ", "_"))+"_"+creation_date+".mp4"
                 new_path = os.path.join(audio_dir, root_name, new_name)
 
-                try:
-                    os.rename(os.path.join(folder, file+".mp4"), new_path)
-                except:
-                    os.rename(os.path.join(folder, file+".mp4"), os.path.join(audio_dir, root_name, str.lower(root_name.replace(" ", "_"))+"_"+creation_date+"_pt2.mp4"))
+                    # index = 1
+                    # while new_path in os.listdir(folder):
+                    #
+                # try:
+                os.rename(os.path.join(folder, file+".mp4"), new_path)
+                # except:
+                #     os.rename(os.path.join(folder, file+".mp4"), os.path.join(audio_dir, root_name, str.lower(root_name.replace(" ", "_"))+"_"+creation_date+"_pt2.mp4"))
                 index += 1
             # delete emptied dir containing extensionless
             os.rmdir(folder)
